@@ -2,68 +2,37 @@
 
 ## Brief
 
-Implement automated security scanning in your CI/CD pipeline and practice fixing vulnerabilities.
+Add non-blocking security checks to your repository with GitHub Actions, and practise managing a finding.
 
-1. **Add OWASP Dependency-Check to Your Pipeline**
-   - Use your existing Spring Boot project with CircleCI pipeline (e.g., devops-demo)
-   - Open `.circleci/config.yml` file
-   - Add a new `security_scan` job after the test job:
-     - Use `cimg/openjdk:21.0` Docker image
-     - Checkout code
-     - Restore Maven cache
-     - Run OWASP Dependency-Check: `mvn org.owasp:dependency-check-maven:check`
-     - Store the HTML report as an artifact at `target/dependency-check-report.html`
-   - Update the workflow to include the security_scan job:
-     - Run security_scan after test completes
-     - Run publish only after security_scan passes
-   - Commit and push your changes:
-```bash
-     git add .circleci/config.yml
-     git commit -m "Add OWASP Dependency-Check to pipeline"
-     git push origin main
-```
-   - Monitor the pipeline in CircleCI:
-     - Watch the security_scan job execute (first run takes 5-8 minutes)
-     - Check the Artifacts tab for the security report
+1. **Add OSV-Scanner with GitHub Actions**
+   - Use your devops-demo repository (public) with the Lesson 4.13 CircleCI pipeline (a failing snyk_scan is expected)
+   - Create `.github/workflows/osv-scanner.yml` that:
+     - Runs on push to `main`, every week on a schedule, and manually (`workflow_dispatch`)
+     - Uses Google's reusable workflow `google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml`
+     - Pins it by **full commit SHA** (not by tag), with the version as a comment
+     - Grants only `actions: read`, `contents: read` and `security-events: write`
+   - Commit, push and check the results in the **Security → Code scanning** tab
    - Take screenshots showing:
-     - Your CircleCI pipeline with all jobs (build, test, security_scan, publish, deploy)
-     - The security scan job completion status
-   - Write a brief explanation (3-4 sentences) describing:
-     - What the security scan does
-     - Where it fits in your pipeline
-     - What happens if vulnerabilities are found
+     - The OSV-Scanner run in the Actions tab
+     - The Security tab (alerts, or "no alerts")
+   - Write a brief explanation (3-4 sentences):
+     - Why this check is non-blocking, while `snyk_scan` in CircleCI is a gate
+     - Why the workflow is pinned by commit SHA
 
-2. **Simulate and Fix a Vulnerability**
-   - Add an old vulnerable dependency to your `pom.xml`:
-```xml
-     <dependency>
-         <groupId>org.apache.commons</groupId>
-         <artifactId>commons-collections4</artifactId>
-         <version>4.0</version>
-     </dependency>
-```
-   - Commit and push the change
-   - Watch the pipeline fail at the security_scan job
-   - Access the security report from CircleCI Artifacts
-   - Document the vulnerability:
-     - CVE number
-     - Severity score
-     - Brief description of the vulnerability
-   - Fix the vulnerability by updating to version 4.4:
-```xml
-     <dependency>
-         <groupId>org.apache.commons</groupId>
-         <artifactId>commons-collections4</artifactId>
-         <version>4.4</version>
-     </dependency>
-```
-   - Commit and push the fix
-   - Verify the pipeline now passes all jobs including security_scan
-   - Write a brief report (4-5 sentences) explaining:
-     - What vulnerability was found
-     - Why it's dangerous
-     - How you fixed it
-     - Why automated security scanning is important in CI/CD
+2. **Triage a Finding**
+   - Pick one LOW or MEDIUM OSV-Scanner alert from the Security tab
+   - Create `osv-scanner.toml` with an `[[IgnoredVulns]]` entry that has an `id`, an `ignoreUntil` date and a `reason` that links your Lesson 4.13 security ticket
+   - Push and confirm the chosen alert closes while the other findings stay open
+   - Write a brief report (4-5 sentences):
+     - The vulnerability ID, severity and fixed version (if any)
+     - Why you accepted it temporarily, and who fixes it
+     - When ignoring a finding is acceptable, and when it isn't
+     - Why every ignore needs a reason and an expiry date
+
+3. **Run a DAST Scan (Stretch)**
+   - Add `.github/workflows/zap-baseline.yml` using `zaproxy/action-baseline` (pinned by commit SHA) against your Railway URL, stored as the repository variable `RAILWAY_APP_URL`
+   - Run it manually and download the `zap_scan` artifact
+   - List the three highest-risk alerts and the solution ZAP suggests for each
 
 ## Submission (Optional)
 
@@ -71,7 +40,7 @@ Implement automated security scanning in your CI/CD pipeline and practice fixing
 - Should you reference the work of your classmate(s) or online resources, give them credit by adding either the name of your classmate or URL.
 
 ## References
-- Java: https://docs.oracle.com/javase/
-- Spring Boot: https://docs.spring.io/spring-boot/docs/current/reference/html/
-- PostgreSQL: https://www.postgresql.org/docs/
+- OSV-Scanner: https://google.github.io/osv-scanner/
+- OSV-Scanner GitHub Action: https://google.github.io/osv-scanner/github-action/
+- OWASP ZAP baseline scan: https://www.zaproxy.org/docs/docker/baseline-scan/
 - OWASP: https://cheatsheetseries.owasp.org/
