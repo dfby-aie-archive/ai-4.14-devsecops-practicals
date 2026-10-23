@@ -86,7 +86,7 @@ Google provides a ready-made GitHub Actions workflow for it.
 In your **devops-demo** project, create `.github/workflows/osv-scanner.yml`:
 
 ```yaml
-name: OSV-Scanner
+name: osv-scanner
 
 on:
   push:
@@ -274,7 +274,7 @@ The URL isn't a secret, but it's still configuration - keep it out of the workfl
 Create `.github/workflows/zap-baseline.yml`:
 
 ```yaml
-name: ZAP Baseline Scan
+name: zap-baseline-scan
 
 on:
   workflow_dispatch:       # run it by hand after a deploy
@@ -299,6 +299,17 @@ jobs:
           target: ${{ vars.APP_URL }}
           allow_issue_writing: false
           fail_action: false
+
+      - name: Upload ZAP report (viewable in browser)
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          path: report_html.html
+          archive: false
+
+      - name: Add ZAP report to job summary
+        if: always()
+        run: cat report_md.md >> "$GITHUB_STEP_SUMMARY"
 ```
 
 | Part | Meaning |
