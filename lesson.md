@@ -19,7 +19,7 @@ Before starting this lesson, ensure you have:
 - Your **devops-demo** repository on GitHub (**public**), with the CircleCI pipeline from Lesson 4.13
   (`snyk_scan` failing is expected - the release is blocked until developers fix the findings)
 - Your security ticket (GitHub issue) from Lesson 4.13
-- Your **Railway app URL** (e.g. `https://devops-demo-production.up.railway.app`)
+- Your **APP URL** (e.g. `https://devops-demo-sample.up.railway.app`)
 - GitHub Actions basics from Lesson 4.9
 
 ---
@@ -259,14 +259,14 @@ Today we run the **baseline** scan.
 
 > **⚠️ Only scan applications you own or have written permission to test.** Scanning someone else's website can be illegal.
 
-### Step 1: Store Your Railway URL as a Repository Variable
+### Step 1: Store Your APP URL as a Repository Variable
 
 The URL isn't a secret, but it's still configuration - keep it out of the workflow file.
 
 1. GitHub repository → **Settings** → **Secrets and variables** → **Actions**
 2. Click the **Variables** tab → **New repository variable**
-3. **Name:** `RAILWAY_APP_URL`
-4. **Value:** your Railway URL, e.g. `https://devops-demo-production.up.railway.app`
+3. **Name:** `APP_URL`
+4. **Value:** your APP URL, e.g. `https://devops-demo-sample.up.railway.app` or `https://devops-demo-sample.onrender.com`
 5. Click **Add variable**
 
 ### Step 2: Create the Workflow File
@@ -293,10 +293,10 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: ZAP baseline scan of the Railway app
+      - name: ZAP baseline scan of the app
         uses: zaproxy/action-baseline@de8ad967d3548d44ef623df22cf95c3b0baf8b25 # v0.15.0
         with:
-          target: ${{ vars.RAILWAY_APP_URL }}
+          target: ${{ vars.APP_URL }}
           allow_issue_writing: false
           fail_action: false
 ```
@@ -305,7 +305,7 @@ jobs:
 |---|---|
 | `workflow_dispatch` | Run it by hand after a deploy |
 | `schedule` | Re-check the live app every Monday |
-| `vars.RAILWAY_APP_URL` | Your repository variable from Step 1 |
+| `vars.APP_URL` | Your repository variable from Step 1 |
 | `allow_issue_writing: false` | Don't open a GitHub issue - we'll read the report instead |
 | `fail_action: false` | Don't fail the workflow because of alerts - a **watchdog**, like OSV-Scanner |
 | Pinned SHAs | Same rule as Part 2 |
@@ -351,7 +351,7 @@ git push origin main
 
 ### Step 5: Discuss
 
-1. Why is the baseline scan safe to run against your live Railway app, while a full scan is not?
+1. Why is the baseline scan safe to run against your live app, while a full scan is not?
 2. Which of the alerts would you fix first, and why?
 3. Snyk, OSV-Scanner and ZAP all reported different things. What does each one see that the others can't?
 4. Should the ZAP scan block deployment? What would happen if it did?
@@ -367,7 +367,7 @@ git push origin main
 | Snyk website | Snyk | SCA | Dashboard; re-tests your project and emails you about new issues |
 | CircleCI | Snyk (`snyk_scan`) | SCA | **Gate** - blocks publish and deploy on HIGH and CRITICAL |
 | GitHub Actions | OSV-Scanner | SCA | **Watchdog** - every push and every Monday; results in the Security tab |
-| GitHub Actions | OWASP ZAP | DAST | **Watchdog** - scans the live Railway app |
+| GitHub Actions | OWASP ZAP | DAST | **Watchdog** - scans the live app |
 
 **Defence in depth:** different tools, different data, different stages. No single scanner catches everything.
 
@@ -398,7 +398,7 @@ git push origin main
 3. ✅ Compared a **watchdog** (OSV-Scanner) with a **gate** (Snyk in CircleCI)
 4. ✅ Accepted one finding temporarily with `osv-scanner.toml` (reason + expiry + ticket)
 5. ✅ Saw that the other findings stay visible until developers fix them
-6. ✅ Ran an OWASP ZAP baseline scan against your live Railway app
+6. ✅ Ran an OWASP ZAP baseline scan against your live app
 7. ✅ Read ZAP's report and compared DAST with SCA
 
 ---
@@ -445,7 +445,7 @@ git push origin main
 ### Issue 5: ZAP fails with "target not reachable" or an empty URL
 
 **Solution:**
-1. Check the repository **variable** (not secret) `RAILWAY_APP_URL` exists - Settings → Secrets and variables → Actions → **Variables**
+1. Check the repository **variable** (not secret) `APP_URL` exists - Settings → Secrets and variables → Actions → **Variables**
 2. Check the URL starts with `https://` and the app is running (open `/hello` in your browser)
 
 ---
